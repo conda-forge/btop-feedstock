@@ -15,7 +15,7 @@ build:
   script:
     - if: osx
       then:
-        - export CXXFLAGS="${CXXFLAGS} -D_LIBCPP_DISABLE_AVAILABILITY"
+        - export CXXFLAGS="${CXXFLAGS} -D_LIBCPP_DISABLE_AVAILABILITY -DkIOMainPortDefault=kIOMasterPortDefault"
     - make -j$CPU_COUNT CXX=$CXX STRIP=true
     - make -j$CPU_COUNT PREFIX=$PREFIX install
 
