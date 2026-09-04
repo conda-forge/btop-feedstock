@@ -8,15 +8,22 @@ package:
 source:
   url: https://github.com/aristocratos/btop/archive/refs/tags/v${{ version }}.tar.gz
   sha256: 933de2e4d1b2211a638be463eb6e8616891bfba73aef5d38060bd8319baeefc6
+  patches:
+    # Remove after an upstream release declares the GNU asprintf interface
+    # used by the vendored Intel GPU collector.
+    - patches/0001-declare-gnu-extensions.patch
 
 build:
-  number: 0
+  number: 1
   skip: [win]
   script:
     - if: osx
       then:
         - export CXXFLAGS="${CXXFLAGS} -D_LIBCPP_DISABLE_AVAILABILITY -DkIOMainPortDefault=kIOMasterPortDefault"
-    - make -j$CPU_COUNT CXX=$CXX STRIP=true
+    # Conda exports ARCH=64, which overrides btop's x86_64 auto-detection.
+    - if: linux and x86_64
+      then: make -j$CPU_COUNT CXX=$CXX ARCH=x86_64 STRIP=true LDFLAGS="${LDFLAGS} -ldl"
+      else: make -j$CPU_COUNT CXX=$CXX STRIP=true
     - make -j$CPU_COUNT PREFIX=$PREFIX install
 
 requirements:
@@ -28,6 +35,8 @@ requirements:
 tests:
   - script:
       - btop --version
+      - if: linux and x86_64
+        then: btop --version | grep "GPU_SUPPORT=true"
 
 about:
   homepage: https://github.com/aristocratos/btop
